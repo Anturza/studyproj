@@ -1,13 +1,17 @@
-package mod2.dao;
+package mod2.service;
 
-import mod2.Entities.Name;
-import mod2.Entities.User;
+import mod2.entities.Name;
+import mod2.entities.User;
+import mod2.dao.UserDaoImpl;
 import mod2.validation.UserValidator;
 
 import java.time.LocalDateTime;
 import java.util.Scanner;
-/** This class is a logic layer of an application and handles operations related to user data , such as creating,
- * modifying and validating user data*/
+
+/**
+ * This class is a logic layer of an application and handles operations related to user data , such as creating,
+ * modifying and validating user data
+ */
 public class UserService {
 
     private UserDaoImpl userDao;
@@ -18,7 +22,8 @@ public class UserService {
         this.userDao = userDao;
         this.sysIn = sysIn;
     }
-    public void showAllUsers(){
+
+    public void showAllUsers() {
         for (User user : userDao.getAll()) {
             System.out.println(user);
         }
@@ -43,7 +48,7 @@ public class UserService {
         int failCount = 0;
 
         for (int i = 1; i <= count; i++) {
-            System.out.printf("Добавление пользователя %d\n", i );
+            System.out.printf("Добавление пользователя %d\n", i);
             User user = createUser();
             if (user == null) {
                 return;
@@ -55,37 +60,14 @@ public class UserService {
 
     private User createUser() {
         System.out.print("Введите Ф.И.О., Ф.И. или хотя бы имя: ");
-
-        String input = "";
-        while (input.isEmpty()) {
-            input = sysIn.nextLine(); // Считывает всю строку, включая пробелы [5]
-
-            if (input.isEmpty()) {
-                System.out.println("Строка не должна быть пустой. Попробуйте еще раз.");
-            }
-        }
-        String name = input.trim();
+        String name = processNameInput().trim();
         Name currName = parseName(name.split(" "));
 
         System.out.print("Введите возраст: ");
-        int age;
-        while (!sysIn.hasNextInt()) {
-            System.out.println("Это не целое число. Попробуйте снова:");
-            sysIn.next();
-        }
-        age = sysIn.nextInt();
-        sysIn.nextLine();
+        int age = processAgeInput();
 
         System.out.print("Введите e-mail: ");
-        String input2 = "";
-        while (input2.isEmpty()) {
-            input2 = sysIn.nextLine();
-
-            if (input2.isEmpty()) {
-                System.out.println("Строка не должна быть пустой. Попробуйте еще раз.");
-            }
-        }
-        String email = input2.trim();
+        String email = sysIn.nextLine().trim();
 
         User currentUser = new User(currName, email, age, LocalDateTime.now());
 
@@ -112,6 +94,28 @@ public class UserService {
         }
         return name;
     }
+    private String processNameInput() {
+        String input = "";
+        while (input.isEmpty()) {
+            input = sysIn.nextLine();
+
+            if (input.isEmpty()) {
+                System.out.println("Строка не должна быть пустой. Попробуйте еще раз.");
+            }
+        }
+        return input;
+    }
+
+    private int processAgeInput(){
+        int age;
+        while (!sysIn.hasNextInt()) {
+            System.out.println("Это не целое число. Попробуйте снова:");
+            sysIn.next();
+        }
+        age = sysIn.nextInt();
+        sysIn.nextLine();
+        return age;
+    }
 
     public void editUser() {
         boolean changesMade = false;
@@ -134,7 +138,6 @@ public class UserService {
                 currentUser.setAge(newAge);
                 changesMade = true;
             }
-
             System.out.println("Если необходимо, введите новый e-mail или пропустите нажав \"Enter\"");
             String newEmail = sysIn.nextLine().trim();
             if (!newEmail.isBlank()) {
@@ -154,7 +157,6 @@ public class UserService {
                     System.out.printf("\u001b[31mПроблема валидации данных пользователя!\n\u001b[0m User: %s содержит " +
                             "некорректные значения, попробуйте еще раз.", currentUser);
                 }
-
             }
         } else {
             System.out.printf("Пользователь с id %d отсутствует в БД\n", id);
@@ -172,19 +174,16 @@ public class UserService {
     private int readInt(String innerMessage) {
         while (true) {
             System.out.println(innerMessage);
-
             if (!sysIn.hasNextInt()) {
                 System.out.println("Ошибка: введите целое число");
                 sysIn.next();
                 continue;
             }
-
             int value = sysIn.nextInt();
             sysIn.nextLine();
             if (value > 0) {
                 return value;
             }
-
             return -1; //to abort action
         }
     }

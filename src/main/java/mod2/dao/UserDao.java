@@ -1,6 +1,6 @@
 package mod2.dao;
 
-import mod2.Entities.User;
+import mod2.entities.User;
 
 import java.util.List;
 /** Interface defines a contract for performing CRUD (Create, Read, Update, Delete) operations on a User entity,

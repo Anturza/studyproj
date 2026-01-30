@@ -3,7 +3,7 @@ package mod2.menu;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
-
+/** Class represents a skeleton for menu*/
 public class Menu {
     private String text;
     private Set<Handler> handlers;
@@ -46,6 +46,5 @@ public class Menu {
 
     public void addHandler(Handler handler) {
         handlers.add(handler);
-
     }
 }

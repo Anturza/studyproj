@@ -1,6 +1,6 @@
 package mod2.validation.chain;
 
-import mod2.Entities.User;
+import mod2.entities.User;
 
 public class NameProcessor extends ValidationProcessor {
     public NameProcessor(ValidationProcessor authProcessor) {
@@ -14,10 +14,10 @@ public class NameProcessor extends ValidationProcessor {
             return false;
         }
 
-        if (nextProcessor == null) { // значит, что в цепочке больше нет проверяющих процессоров
+        if (nextProcessor == null) {
             return true;
         } else {
-            return nextProcessor.isClear(user); // иначе - передать юзера на проверку дальше
+            return nextProcessor.isClear(user);
         }
     }
 }

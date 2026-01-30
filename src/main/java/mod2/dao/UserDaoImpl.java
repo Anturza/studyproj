@@ -3,7 +3,7 @@ package mod2.dao;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-import mod2.Entities.User;
+import mod2.entities.User;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -13,6 +13,8 @@ import org.hibernate.exception.JDBCConnectionException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+
 /** Class defining data operations that uses the Hibernate Session to perform operations*/
 public class UserDaoImpl implements UserDao {
 
@@ -36,7 +38,7 @@ public class UserDaoImpl implements UserDao {
             }
             return Collections.singletonList(currentUser);
         });
-        return singletonList.get(0);
+        return Objects.requireNonNull(singletonList).get(0);
     }
 
     @Override
@@ -76,7 +78,7 @@ public class UserDaoImpl implements UserDao {
             while (cause.getCause() != null && cause.getCause() != cause) {
                 cause = cause.getCause();
             }
-            System.err.printf("Root cause of the exception: %s", cause.getMessage());
+            System.err.printf("Причина исключения: %s", cause.getMessage());
         } catch (HibernateException e) {
             e.printStackTrace();
         }
@@ -101,7 +103,7 @@ public class UserDaoImpl implements UserDao {
             while (cause.getCause() != null && cause.getCause() != cause) {
                 cause = cause.getCause();
             }
-            System.err.printf("Root cause of the exception: %s", cause.getMessage());
+            System.err.printf("Причина исключения: %s", cause.getMessage());
             cause.printStackTrace();
         } catch (HibernateException e) {
             // Catch-all for other Hibernate exceptions

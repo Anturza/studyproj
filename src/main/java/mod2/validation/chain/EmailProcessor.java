@@ -1,6 +1,6 @@
 package mod2.validation.chain;
 
-import mod2.Entities.User;
+import mod2.entities.User;
 
 public class EmailProcessor extends ValidationProcessor {
 
@@ -12,14 +12,14 @@ public class EmailProcessor extends ValidationProcessor {
     public boolean isClear(User user) {
         super.isClear(user);
 
-        if (!user.getEmail().matches("^[\\w-\\.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$")) {
+        if (!user.getEmail().matches("^$|^[\\w-\\.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$")) {
             return false;
         }
 
-        if (nextProcessor == null) { // значит, что в цепочке больше нет проверяющих процессоров
+        if (nextProcessor == null) {
             return true;
         } else {
-            return nextProcessor.isClear(user); // иначе - передать юзера на проверку дальше
+            return nextProcessor.isClear(user);
         }
     }
 }

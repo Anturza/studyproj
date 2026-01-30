@@ -1,4 +1,4 @@
-package mod2.Entities;
+package mod2.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,28 +7,24 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import java.util.Objects;
 import java.util.StringJoiner;
 
 @Entity
 @Table(name = "usernames")
-@NoArgsConstructor
-@Getter
-@Setter
 public class Name {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "names_id_gen")
     @SequenceGenerator(name = "names_id_gen", sequenceName = "names_id_seq", allocationSize = 1)
     private long id;
-    @Column(length = 50, nullable = true)
+    @Column(length = 50)
     private String surname;
     @Column(length = 50, nullable = false)
     private String personalName;
-    @Column(length = 50, nullable = true)
+    @Column(length = 50)
     private String patronymic;
+
+    public Name() {}
 
     public Name(String personalName) {
         this.personalName = personalName;

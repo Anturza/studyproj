@@ -1,7 +1,7 @@
 package mod2.menu;
 
 import java.util.Objects;
-
+/** Class needed to get and insert handlers in menus which will perform some action by its referenced key*/
 public class Handler {
     Runnable action;
     protected String key;

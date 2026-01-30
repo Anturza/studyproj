@@ -1,9 +1,9 @@
 package mod2;
 
-import mod2.Entities.Name;
-import mod2.Entities.User;
+import mod2.entities.Name;
+import mod2.entities.User;
 import mod2.dao.UserDaoImpl;
-import mod2.dao.UserService;
+import mod2.service.UserService;
 import mod2.menu.Handler;
 import org.hibernate.cfg.Configuration;
 import mod2.menu.Menu;
