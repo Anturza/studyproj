@@ -1,25 +1,21 @@
 package mod2;
 
-import mod2.entities.Name;
-import mod2.entities.User;
 import mod2.dao.UserDaoImpl;
 import mod2.service.UserService;
 import mod2.menu.Handler;
-import org.hibernate.cfg.Configuration;
+import mod2.util.HibernateConfig;
 import mod2.menu.Menu;
+import org.hibernate.SessionFactory;
 
 import java.util.Scanner;
 
 public class App {
 
     static Scanner sysIn = new Scanner(System.in);
-
-    static Configuration userConfiguration = new org.hibernate.cfg.Configuration()
-            .addAnnotatedClass(User.class).addAnnotatedClass(Name.class);
-
-    static UserDaoImpl userDao = new UserDaoImpl(userConfiguration.buildSessionFactory());
-
+    static SessionFactory factory = HibernateConfig.getSessionFactory();
+    static UserDaoImpl userDao = new UserDaoImpl(factory);
     static UserService userService = new UserService(userDao, sysIn);
+
 
     public static void main(String[] args) {
 
@@ -37,5 +33,6 @@ public class App {
         mainMenu.run();
 
         sysIn.close();
+        HibernateConfig.shutdown();
     }
 }

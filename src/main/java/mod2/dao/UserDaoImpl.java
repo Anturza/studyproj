@@ -10,19 +10,23 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.JDBCConnectionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.UUID;
 
 /** Class defining data operations that uses the Hibernate Session to perform operations*/
 public class UserDaoImpl implements UserDao {
 
-    private SessionFactory sessionFactory;
+    private static SessionFactory sessionFactory;
 
     public UserDaoImpl(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
+        UserDaoImpl.sessionFactory = sessionFactory;
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
     @Override
     public void create(User user) {
@@ -30,15 +34,18 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public User get(Long id) {
+    public User get(UUID id) {
         List<User> singletonList = executeReadWithSession(sessionFactory, session -> {
             User currentUser = session.get(User.class, id);
             if (currentUser == null) {
-                System.out.printf("Пользователя с id %d не имеется\n", id);
+                System.out.printf("Пользователя с id %s не имеется\n", id);
             }
             return Collections.singletonList(currentUser);
         });
-        return Objects.requireNonNull(singletonList).get(0);
+        if (singletonList == null) {
+            return null;
+        }
+        return singletonList.get(0);
     }
 
     @Override
@@ -58,7 +65,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void remove(Long id) {
+    public void remove(UUID id) {
         executeWithSession(sessionFactory, session -> {
             User user = session.get(User.class, id);
             if (user == null) {
@@ -78,11 +85,12 @@ public class UserDaoImpl implements UserDao {
             while (cause.getCause() != null && cause.getCause() != cause) {
                 cause = cause.getCause();
             }
-            System.err.printf("Причина исключения: %s", cause.getMessage());
+            logger.error("Причина JDBC исключения (чтение из базы данных): {}", cause.getMessage());
+            return null;
         } catch (HibernateException e) {
-            e.printStackTrace();
+            logger.error("Hibernate исключение (чтение из базы данных): {}", e.getMessage());
+            return null;
         }
-        return null;
     }
 
     public static void executeWithSession(SessionFactory sessionFactory, EntityModAction action) {
@@ -92,23 +100,24 @@ public class UserDaoImpl implements UserDao {
             action.execute(session); // what we need to execute
             tr.commit();
         } catch (ConstraintViolationException e) {
-            // Handle specific constraint violation
-            if (tr != null && tr.isActive()) tr.rollback();
-            e.printStackTrace();
-        } catch (JDBCConnectionException e) {
-            // Handle connection issues
-            if (tr != null && tr.isActive()) tr.rollback();
-            // Inspect the exact SQL error code and message from the database.
-            Throwable cause = e;
-            while (cause.getCause() != null && cause.getCause() != cause) {
-                cause = cause.getCause();
+            if (tr != null && tr.isActive()) {
+                tr.rollback();
+                logger.error ("Проблема нарушения органичений SQL: {}",e.getMessage());
             }
-            System.err.printf("Причина исключения: %s", cause.getMessage());
-            cause.printStackTrace();
+        } catch (JDBCConnectionException e) {
+            if (tr != null && tr.isActive()) {
+                tr.rollback();
+                Throwable cause = e;
+                while (cause.getCause() != null && cause.getCause() != cause) {
+                    cause = cause.getCause();
+                }
+                logger.error("Причина JDBC исключения (запись в базу данных): {}", cause.getMessage(), cause);
+            }
         } catch (HibernateException e) {
-            // Catch-all for other Hibernate exceptions
-            if (tr != null && tr.isActive()) tr.rollback();
-            e.printStackTrace();
+            if (tr != null && tr.isActive()) {
+                tr.rollback();
+                logger.error("Hibernate исключение (запись в базу данных): {}", e.getMessage());
+            }
         }
     }
 }

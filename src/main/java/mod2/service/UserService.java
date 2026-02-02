@@ -1,12 +1,16 @@
 package mod2.service;
 
+import mod2.dao.UserDaoImpl;
 import mod2.entities.Name;
 import mod2.entities.User;
-import mod2.dao.UserDaoImpl;
 import mod2.validation.UserValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 
 /**
  * This class is a logic layer of an application and handles operations related to user data , such as creating,
@@ -18,24 +22,34 @@ public class UserService {
 
     private Scanner sysIn;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    public static final String WRONG_ID = "Введен неверный id пользователя: {}";
+
     public UserService(UserDaoImpl userDao, Scanner sysIn) {
         this.userDao = userDao;
         this.sysIn = sysIn;
     }
 
     public void showAllUsers() {
-        for (User user : userDao.getAll()) {
-            System.out.println(user);
+        List<User> lst = userDao.getAll();
+        if (lst != null) {
+            for (User user : lst) {
+                System.out.println(user);
+            }
         }
     }
 
     public void showUser() {
         System.out.print("Введите id пользователя: ");
-        long id = sysIn.nextLong();
-        sysIn.nextLine();
-        User currentUser = userDao.get(id);
-        if (currentUser != null) {
-            System.out.println(currentUser);
+        try {
+            String strUuid = sysIn.nextLine();
+            UUID uuid = UUID.fromString(strUuid);
+            User currentUser = userDao.get(uuid);
+            if (currentUser != null) {
+                System.out.println(currentUser);
+            }
+        } catch (IllegalArgumentException e) {
+            logger.error(WRONG_ID, e.getMessage(), e);
         }
     }
 
@@ -49,11 +63,20 @@ public class UserService {
 
         for (int i = 1; i <= count; i++) {
             System.out.printf("Добавление пользователя %d\n", i);
-            User user = createUser();
-            if (user == null) {
-                return;
+            try {
+                User user = createUser();
+                if (user == null) {
+                    failCount++;
+                    continue;
+                }
+                userDao.create(user);
+            } catch (NumberFormatException e) {
+                failCount++;
+                logger.error("Ошибка: возраст должен быть числом.");
+            } catch (IllegalArgumentException | IllegalStateException e) {
+                failCount++;
+                logger.error("Ошибка валидации: {}", e.getMessage());
             }
-            userDao.create(user);
         }
         System.out.println("Успешно созданных пользователей: " + (count - failCount));
     }
@@ -76,7 +99,7 @@ public class UserService {
             return currentUser;
         } else {
             System.out.printf("\u001b[31mПроблема валидации данных пользователя!\n\u001b[0m User: %s содержит " +
-                    "некорректные значения, попробуйте еще раз.", currentUser);
+                    "некорректные значения, попробуйте еще раз.\n", currentUser);
             return null;
         }
     }
@@ -94,19 +117,19 @@ public class UserService {
         }
         return name;
     }
+
     private String processNameInput() {
         String input = "";
-        while (input.isEmpty()) {
+        while (input.isEmpty() || input.matches("^\\d+$")) {
             input = sysIn.nextLine();
-
             if (input.isEmpty()) {
-                System.out.println("Строка не должна быть пустой. Попробуйте еще раз.");
+                System.out.println("Строка не должна быть пустой или содержать одни цифры. Попробуйте еще раз.");
             }
         }
         return input;
     }
 
-    private int processAgeInput(){
+    private int processAgeInput() {
         int age;
         while (!sysIn.hasNextInt()) {
             System.out.println("Это не целое число. Попробуйте снова:");
@@ -119,13 +142,23 @@ public class UserService {
 
     public void editUser() {
         boolean changesMade = false;
+        UUID uuid;
         System.out.print("Введите id пользователя, данные которого необходимо изменить: ");
-        long id = sysIn.nextLong();
-        sysIn.nextLine();
-        User currentUser = userDao.get(id);
+        try {
+            String strUuid = sysIn.nextLine();
+            uuid = UUID.fromString(strUuid);
+        } catch (IllegalArgumentException e) {
+            logger.error(WRONG_ID, e.getMessage(), e);
+            return;
+        }
+        User currentUser = userDao.get(uuid);
         if (currentUser != null) {
             System.out.println("Если требуется, введите новые Ф.И.О. или пропустите нажав \"Enter\"");
             String name = sysIn.nextLine().trim();
+            while (name.matches("^\\d+$")) {
+                System.out.println("Имя не должно содержать только цифры");
+                name = sysIn.nextLine().trim();
+            }
             if (!name.isBlank()) {
                 Name newName = parseName(name.split(" "));
                 currentUser.setName(newName);
@@ -158,17 +191,19 @@ public class UserService {
                             "некорректные значения, попробуйте еще раз.", currentUser);
                 }
             }
-        } else {
-            System.out.printf("Пользователь с id %d отсутствует в БД\n", id);
         }
         System.out.println("Действие отменено");
     }
 
     public void removeUser() {
-        System.out.print("Введите id пользователя: ");
-        long id = sysIn.nextLong();
-        sysIn.nextLine();
-        userDao.remove(id);
+        System.out.print("Введите id пользователя которого хотите удалить: ");
+        try {
+            String strUuid = sysIn.nextLine();
+            UUID uuid = UUID.fromString(strUuid);
+            userDao.remove(uuid);
+        } catch (IllegalArgumentException e) {
+            logger.error(WRONG_ID, e.getMessage(), e);
+        }
     }
 
     private int readInt(String innerMessage) {

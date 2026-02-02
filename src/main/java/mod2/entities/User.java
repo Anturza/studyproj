@@ -4,23 +4,23 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "Users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_id_gen")
-    @SequenceGenerator(name = "users_id_gen", sequenceName = "users_id_seq", allocationSize = 1)
-    protected long id;
+    @GeneratedValue
+    @UuidGenerator
+    protected UUID id;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "name_id", referencedColumnName = "id")
@@ -87,7 +87,7 @@ public class User {
 
     @Override
     public String toString() {
-        return String.format("User{id=%d, name=%s, email=%s, age=%d, created=%s}", id, name, email, age, created);
+        return String.format("User{id=%s, name=%s, email=%s, age=%d, created=%s}", id, name, email, age, created);
     }
 }
 
