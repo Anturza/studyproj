@@ -16,8 +16,5 @@
         <property name="hibernate.format_sql">true</property>
         <property name="hibernate.highlight_sql">true</property>
 
-        <mapping class="mod2.entities.Name"/>
-        <mapping class="mod2.entities.User"/>
-
     </session-factory>
 </hibernate-configuration>
