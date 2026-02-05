@@ -1,6 +1,6 @@
 package mod2.service;
 
-import mod2.dao.UserDaoImpl;
+import mod2.dao.UserDao;
 import mod2.entities.Name;
 import mod2.entities.User;
 import mod2.validation.UserValidator;
@@ -18,28 +18,29 @@ import java.util.UUID;
  */
 public class UserService {
 
-    private UserDaoImpl userDao;
+    private UserDao userDao;
 
     private Scanner sysIn;
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    public static final String WRONG_ID = "Введен неверный id пользователя: {}";
+    private static final String WRONG_ID = "Введен неверный id пользователя: {}";
 
-    public UserService(UserDaoImpl userDao, Scanner sysIn) {
+    public UserService(UserDao userDao, Scanner sysIn) {
         this.userDao = userDao;
         this.sysIn = sysIn;
     }
 
-    public void showAllUsers() {
+    public List<User> getAndShowAllUsers() {
         List<User> lst = userDao.getAll();
         if (lst != null) {
             for (User user : lst) {
                 System.out.println(user);
             }
         }
+        return lst;
     }
 
-    public void showUser() {
+    public User getAndShowUser() {
         System.out.print("Введите id пользователя: ");
         try {
             String strUuid = sysIn.nextLine();
@@ -47,10 +48,12 @@ public class UserService {
             User currentUser = userDao.get(uuid);
             if (currentUser != null) {
                 System.out.println(currentUser);
+                return currentUser;
             }
         } catch (IllegalArgumentException e) {
             logger.error(WRONG_ID, e.getMessage(), e);
         }
+        return null;
     }
 
     public void addUser() {

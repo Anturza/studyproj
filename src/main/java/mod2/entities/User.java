@@ -37,12 +37,22 @@ public class User {
 
     public User() {
     }
-
     public User(Name name, String email, int age, LocalDateTime created) {
         this.name = name;
         this.email = email;
         this.age = age;
         this.created = created;
+    }
+    public User(UUID id, Name name, String email, int age, LocalDateTime created) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.age = age;
+        this.created = created;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public Name getName() {
