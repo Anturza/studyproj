@@ -3,6 +3,7 @@ package mod2.service;
 import mod2.dao.UserDao;
 import mod2.entities.Name;
 import mod2.entities.User;
+import mod2.exceptions.UserNotFoundException;
 import mod2.validation.UserValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class UserService {
                 System.out.println(currentUser);
                 return currentUser;
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | UserNotFoundException e) {
             logger.error(WRONG_ID, e.getMessage(), e);
         }
         return null;
@@ -218,7 +219,6 @@ public class UserService {
                 continue;
             }
             int value = sysIn.nextInt();
-            sysIn.nextLine();
             if (value > 0) {
                 return value;
             }
