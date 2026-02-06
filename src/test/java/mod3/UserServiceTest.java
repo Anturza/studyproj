@@ -55,7 +55,7 @@ public class UserServiceTest {
     }
 
     @BeforeEach
-    public void setup() {
+    public void setUp() {
         Name testName = new Name("Ulrich", "Lars", "Jr");
         Name testName2 = new Name("Ivanov", "Vitaly");
         Name testName3 = new Name("Petrov", "Petr");
