@@ -123,13 +123,13 @@ public class UserService {
     }
 
     private String processNameInput() {
-        String input = "";
-        while (input.isEmpty() || input.matches("^\\d+$")) {
+        String input = sysIn.nextLine();
+        do {
             input = sysIn.nextLine();
             if (input.isEmpty()) {
                 System.out.println("Строка не должна быть пустой или содержать одни цифры. Попробуйте еще раз.");
             }
-        }
+        } while (input.isBlank() || input.matches("^\\d+$"));
         return input;
     }
 

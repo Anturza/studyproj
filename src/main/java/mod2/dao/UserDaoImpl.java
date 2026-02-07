@@ -30,8 +30,9 @@ public class UserDaoImpl implements UserDao {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
     @Override
-    public void create(User user) {
+    public User create(User user) {
         executeWithSession(sessionFactory, session -> session.persist(user));
+        return user;
     }
 
     @Override

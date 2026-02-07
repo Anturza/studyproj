@@ -34,15 +34,25 @@ public class User {
 
     @Column(name = "created_at", updatable = false)
     protected LocalDateTime created;
-
+    //TODO: better have builder
     public User() {
     }
+
+    public User(UUID id, Name name, String email, int age) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.age = age;
+
+    }
+
     public User(Name name, String email, int age, LocalDateTime created) {
         this.name = name;
         this.email = email;
         this.age = age;
         this.created = created;
     }
+
     public User(UUID id, Name name, String email, int age, LocalDateTime created) {
         this.id = id;
         this.name = name;
@@ -87,7 +97,7 @@ public class User {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id && age == user.age && Objects.equals(name, user.name) && Objects.equals(email, user.email);
+        return age == user.age && Objects.equals(id, user.id) && Objects.equals(name, user.name) && Objects.equals(email, user.email);
     }
 
     @Override

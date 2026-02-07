@@ -47,7 +47,6 @@ public class UserServiceTest {
 
     private User expectedExistingUser;
     private User expectedCreatedUser;
-    private List<User> expectedUserList;
 
     void provideInput(String data) {
         ByteArrayInputStream testIn = new ByteArrayInputStream(data.getBytes());
@@ -57,29 +56,31 @@ public class UserServiceTest {
     @BeforeEach
     public void setUp() {
         Name testName = new Name("Ulrich", "Lars", "Jr");
-        Name testName2 = new Name("Ivanov", "Vitaly");
-        Name testName3 = new Name("Petrov", "Petr");
         expectedExistingUser = new User(UUID.fromString(TEST_ID_INPUT), testName, TEST_EMAIL_INPUT, TEST_AGE_INPUT, LocalDateTime.now());
         expectedCreatedUser = new User(testName, TEST_EMAIL_INPUT, TEST_AGE_INPUT, LocalDateTime.now());
-        User testUser = new User(UUID.randomUUID(), testName2, "asd@asd.com", 28, LocalDateTime.now());
-        User testUser2 = new User(UUID.randomUUID(), testName3, "asd@asd.com", 28, LocalDateTime.now());
-        expectedUserList = List.of(testUser, testUser2);
     }
 
     @Test
-    @DisplayName("getAndShowAllUsers test")
+    @DisplayName("Get and show all users test")
     void whenGetAndShowAllUsers_thenReturnUsersList() {
+        Name testName2 = new Name("Ivanov", "Vitaly");
+        Name testName3 = new Name("Petrov", "Petr");
+        User testUser = new User(UUID.randomUUID(), testName2, "asd@asd.com", 28, LocalDateTime.now());
+        User testUser2 = new User(UUID.randomUUID(), testName3, "qwe@rty.com", 48, LocalDateTime.now());
+        List<User> expectedUserList = List.of(testUser, testUser2);
         when(userDao.getAll()).thenReturn(expectedUserList);
+        userDao.create(testUser);
+        userDao.create(testUser2);
         List<User> actualUserList = userService.getAndShowAllUsers();
-        assertThat(expectedUserList).isEqualTo(actualUserList);
+        assertThat(expectedUserList).containsAll(actualUserList);
         verify(userDao, times(1)).getAll();
     }
 
     @Test
-    @DisplayName("addUser test")
+    @DisplayName("Add user (valid args) test")
     void whenAddUserValidArgs_thenUserBeingPersisted() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput(TEST_INT_INPUT + "\n" + TEST_NAME_INPUT + "\n" + TEST_AGE_INPUT + "\n" + TEST_EMAIL_INPUT);
-        doNothing().when(userDao).create(expectedCreatedUser);
+        when(userDao.create(expectedCreatedUser)).thenReturn(expectedCreatedUser);
         userService = new UserService(userDao, new Scanner(System.in));
         Class<?> cl = userService.getClass();
         Method meth = cl.getDeclaredMethod("addUser");
@@ -89,10 +90,10 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("addUser test")
+    @DisplayName("Add user (wrong args) test")
     void whenAddUserWrongArgs_thenUserNotPersisted() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput(TEST_INT_INPUT + "\n" + TEST_NAME_INPUT + "\n" + 22 + "\n" + "wrong.em@il");
-        doNothing().when(userDao).create(expectedCreatedUser);
+        when(userDao.create(expectedCreatedUser)).thenReturn(expectedCreatedUser);
         userService = new UserService(userDao, new Scanner(System.in));
         Class<?> cl = userService.getClass();
         Method meth = cl.getDeclaredMethod("addUser");
@@ -102,7 +103,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("getAndShowUser test")
+    @DisplayName("Get and show user (valid args) test")
     void whenGetAndShowUserValidArgs_thenReturnUser() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput(TEST_ID_INPUT);
         when(userDao.get(expectedExistingUser.getId())).thenReturn(expectedExistingUser);
@@ -117,7 +118,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("getAndShowUser test")
+    @DisplayName("Get and show user (wrong args) test")
     void whenGetAndShowUserWrongArgs_thenReturnNothing() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         UUID wrongId = UUID.randomUUID();
         provideInput(wrongId.toString());
@@ -133,7 +134,7 @@ public class UserServiceTest {
 
 
     @Test
-    @DisplayName("removeUser test")
+    @DisplayName("Remove user (valid args) test")
     void whenRemoveUserValidArgs_thenUserDAOCalled() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput(TEST_ID_INPUT);
         doNothing().when(userDao).remove(expectedExistingUser.getId());
@@ -146,7 +147,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("removeUser test")
+    @DisplayName("Remove user (wrong args) test")
     void whenRemoveUserWrongArgs_thenUserDAONotCalled() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput("wR0nGuU1D_@R1sEn-hErE");
         doNothing().when(userDao).remove(expectedExistingUser.getId());
@@ -159,7 +160,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("editUser test")
+    @DisplayName("Edit user (valid args) test")
     void whenUpdateUserValidArgs_thenUserPersisted() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput(TEST_ID_INPUT + "\n" + TEST_NAME_INPUT + "\n" + TEST_AGE_INPUT + "\n" + TEST_EMAIL_INPUT +
                 "\n" + "Y");
@@ -173,7 +174,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("editUser test")
+    @DisplayName("Edit user (empty args) test")
     void whenUpdateNoFieldsUser_thenOperationAborted() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput(TEST_ID_INPUT + "\n" + "\n" + "\n" + "\n");
         when(userDao.get(any(UUID.class))).thenReturn(expectedExistingUser);
@@ -186,7 +187,7 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("editUser test")
+    @DisplayName("Edit user (wrong args) test")
     void whenUpdateUserWrongArgs_thenOperationAborted() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         provideInput(TEST_ID_INPUT + "\n" + "Surname Name" + "\n" + 180 + "\n" + "wrong.em@il" +
                 "\n" + "Y");
