@@ -1,4 +1,4 @@
-package mod2.entities;
+package mod4.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package mod2.entities;
+package mod4.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -10,6 +10,12 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -24,12 +30,18 @@ public class User {
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "name_id", referencedColumnName = "id")
+    @NotEmpty(message = "Name can not be empty")
+    @Size(min = 1, max = 45, message = "Name length should be between 1 and 45 characters")
     protected Name name;
 
     @Column(length = 85)
+    @Email(message = "email should be valid", regexp = "^$|^[\\w-\\.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$")
     protected String email;
 
     @Column(name = "user_age", nullable = false)
+    @Min(value = 0, message = "can not be less than 0")
+    @Max(value = 150, message = "can not be more than 150")
+    @Digits(message = "only integer digits acceptable", integer = 3, fraction = 0)
     protected int age;
 
     @Column(name = "created_at", updatable = false)

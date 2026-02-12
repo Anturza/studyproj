@@ -1,7 +1,7 @@
-package mod2.util;
+package mod4.util;
 
-import mod2.entities.Name;
-import mod2.entities.User;
+import mod4.model.Name;
+import mod4.model.User;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;

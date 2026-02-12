@@ -1,6 +1,6 @@
-package mod2.dao;
+package mod4.dao;
 
-import mod2.entities.User;
+import mod4.model.User;
 
 import java.util.List;
 import java.util.UUID;
@@ -10,13 +10,13 @@ import java.util.UUID;
 
 public interface UserDao {
 
-    User create(User user);
+    void create(User user);
 
     User get(UUID id);
 
     List<User> getAll();
 
-    void update(User user);
+    void update(UUID id, User user);
 
     void remove(UUID id);
 }
