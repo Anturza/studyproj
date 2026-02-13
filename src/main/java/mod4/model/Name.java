@@ -7,6 +7,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -61,5 +63,25 @@ public class Name {
         if (personalName != null) joiner.add(personalName);
         if (patronymic != null) joiner.add(patronymic);
         return joiner.toString();
+    }
+
+    public static Name nameFromString(String name) {
+        String nameToBeParsed = name.trim();
+        return parseName(nameToBeParsed.split(" "));
+
+    }
+
+    static Name parseName(String[] userData) {
+        Name name;
+        if (userData.length == 3) {
+            name = new Name(userData[0], userData[1], userData[2]);
+        } else if (userData.length == 2) {
+            name = new Name(userData[0], userData[1]);
+        } else if (userData.length == 1) {
+            name = new Name(userData[0]);
+        } else {
+            return null;
+        }
+        return name;
     }
 }

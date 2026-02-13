@@ -1,21 +1,20 @@
 package mod4.controllers;
 
 import mod4.dao.UserDao;
+import mod4.model.Name;
 import mod4.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-
-import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Controller
@@ -40,18 +39,23 @@ public class UsersController {
         return "users/show";
     }
 
-    @GetMapping("new")
+    @GetMapping("/new")
     public String newPerson(Model model) {
         model.addAttribute("user", new User());
         return "users/new";
     }
 
     @PostMapping()
-    public String create(@ModelAttribute("user") @Valid User user, BindingResult validationResult) {
-        if (validationResult.hasErrors()){
-            return "users/new";
-        }
-        userDao.create(user);
+    public String create(@RequestParam("name") String name,
+                         @RequestParam("age") int age,
+                         @RequestParam("email") String email) {
+        Name parsedName = Name.nameFromString(name);
+        User newUser = new User();
+        newUser.setName(parsedName);
+        newUser.setAge(age);
+        newUser.setEmail(email);
+        newUser.setCreated(LocalDateTime.now());
+        userDao.create(newUser);
         return "redirect:/users";
     }
 
@@ -62,12 +66,15 @@ public class UsersController {
     }
 
     @PatchMapping("/{id}")
-    public String Update(@ModelAttribute("user") @Valid User user, BindingResult validationResult,
+    public String Update(@RequestParam("name") Name name,
+                         @RequestParam("age") int age,
+                         @RequestParam("email") String email,
                          @PathVariable("id") UUID id) {
-        if (validationResult.hasErrors()) {
-            return "users/edit";
-        }
-        userDao.update(id, user);
+        User updUser = new User();
+        updUser.setName(name);
+        updUser.setAge(age);
+        updUser.setEmail(email);
+        userDao.update(id, updUser);
         return "redirect:/users";
     }
 

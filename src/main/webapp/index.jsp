@@ -1,5 +1,7 @@
 <html>
 <body>
-<h2>Hello World!</h2>
+<h2>Hi there!</h2>
+<br>
+<a href="/users">Show all users</a>
 </body>
 </html>

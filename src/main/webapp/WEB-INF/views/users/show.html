@@ -5,14 +5,16 @@
     <title>User show page</title>
 </head>
 <body>
-<p th:text="${user.getName() + ', ' + user.getAge()}">VALUE</p>
+<p th:text="${'Name: ' +user.getName() + ', ' + user.getAge()}">VALUE</p>
 <p th:text="${'Email: ' + user.getEmail()}">VALUE</p>
-<p th:text="${user.getId()}">VALUE</p>
+<p th:text="${'User created: ' + user.getCreated()}">VALUE</p>
+<p th:text="${'User ID: '+ user.getId()}">VALUE</p>
 <br>
 <a th:href="@{/users/{id}/edit(id=${user.getId()})}">Edit user data</a>
 <br>
+<br>
 <form th:method="DELETE" th:action="@{/users/{id}(id=${user.getId()})}">
-    <input type="submit" value="Delete"/>
+    <input type="submit" value="Delete this user"/>
 </form>
 
 </body>
