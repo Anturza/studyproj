@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -47,12 +48,12 @@ public class UsersController {
 
     @PostMapping()
     public String create(@RequestParam("name") String name,
-                         @RequestParam("age") int age,
+                         @RequestParam("birthday")LocalDate birthday,
                          @RequestParam("email") String email) {
         Name parsedName = Name.nameFromString(name);
         User newUser = new User();
         newUser.setName(parsedName);
-        newUser.setAge(age);
+        newUser.setBirthday(birthday);
         newUser.setEmail(email);
         newUser.setCreated(LocalDateTime.now());
         userDao.create(newUser);
@@ -67,12 +68,12 @@ public class UsersController {
 
     @PatchMapping("/{id}")
     public String Update(@RequestParam("name") Name name,
-                         @RequestParam("age") int age,
+                         @RequestParam("birthday") LocalDate birthday,
                          @RequestParam("email") String email,
                          @PathVariable("id") UUID id) {
         User updUser = new User();
         updUser.setName(name);
-        updUser.setAge(age);
+        updUser.setBirthday(birthday);
         updUser.setEmail(email);
         userDao.update(id, updUser);
         return "redirect:/users";

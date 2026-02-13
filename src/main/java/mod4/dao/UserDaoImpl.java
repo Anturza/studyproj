@@ -65,7 +65,7 @@ public class UserDaoImpl implements UserDao {
             User userToBeUpdated = session.get(User.class, id);
             userToBeUpdated.setName(user.getName());
             userToBeUpdated.setEmail(user.getEmail());
-            userToBeUpdated.setAge(user.getAge());
+            userToBeUpdated.setBirthday(user.getBirthday());
         });
     }
 

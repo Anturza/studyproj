@@ -12,18 +12,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-@Entity
-@Table(name = "usernames")
 public class Name {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "names_id_gen")
-    @SequenceGenerator(name = "names_id_gen", sequenceName = "names_id_seq", allocationSize = 1)
-    private long id;
-    @Column(length = 50)
+
     private String surname;
-    @Column(length = 50, nullable = false)
+
     private String personalName;
-    @Column(length = 50)
+
     private String patronymic;
 
     public Name() {}

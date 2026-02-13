@@ -2,6 +2,8 @@ package mod4.model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -10,6 +12,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -22,15 +25,14 @@ public class User {
     @UuidGenerator
     protected UUID id;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "name_id", referencedColumnName = "id")
+    @Embedded
     protected Name name;
 
     @Column(length = 85)
     protected String email;
 
-    @Column(name = "user_age", nullable = false)
-    protected int age;
+    @Column(name = "birthday", nullable = false)
+    protected LocalDate birthday;
 
     @Column(name = "created_at", updatable = false)
     protected LocalDateTime created;
@@ -50,8 +52,8 @@ public class User {
         return email;
     }
 
-    public int getAge() {
-        return age;
+    public LocalDate getBirthday() {
+        return birthday;
     }
 
     public LocalDateTime getCreated() {
@@ -66,8 +68,8 @@ public class User {
         this.email = email;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
     }
 
     public void setId(UUID id) {
@@ -82,17 +84,17 @@ public class User {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return age == user.age && Objects.equals(id, user.id) && Objects.equals(name, user.name) && Objects.equals(email, user.email);
+        return Objects.equals(id, user.id) && Objects.equals(name, user.name) && Objects.equals(email, user.email) && Objects.equals(birthday, user.birthday);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, email, age);
+        return Objects.hash(id, name, email, birthday);
     }
 
     @Override
     public String toString() {
-        return String.format("User{id=%s, name=%s, email=%s, age=%d, created=%s}", id, name, email, age, created);
+        return String.format("User{id=%s, name=%s, email=%s, birthday=%s, created=%s}", id, name, email, birthday, created);
     }
 }
 
