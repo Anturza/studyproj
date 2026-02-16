@@ -1,14 +1,5 @@
-package mod4.model;
+package mod4.jpaapi.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -34,6 +25,30 @@ public class Name {
     public Name(String surname, String personalName, String patronymic) {
         this.surname = surname;
         this.personalName = personalName;
+        this.patronymic = patronymic;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public String getPersonalName() {
+        return personalName;
+    }
+
+    public String getPatronymic() {
+        return patronymic;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public void setPersonalName(String personalName) {
+        this.personalName = personalName;
+    }
+
+    public void setPatronymic(String patronymic) {
         this.patronymic = patronymic;
     }
 
