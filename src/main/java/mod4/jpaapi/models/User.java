@@ -1,16 +1,7 @@
-package mod4.model;
+package mod4.jpaapi.models;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,23 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "Users")
-public class User {
-    @Id
-    @GeneratedValue
-    @UuidGenerator
-    protected UUID id;
-
-    @Embedded
-    protected Name name;
-
-    @Column(length = 85)
-    protected String email;
-
-    @Column(name = "birthday", nullable = false)
-    protected LocalDate birthday;
-
-    @Column(name = "created_at", updatable = false)
-    protected LocalDateTime created;
+public class User extends UserBaseModel{
 
     public User() {
     }
@@ -60,6 +35,10 @@ public class User {
         return created;
     }
 
+    public LocalDateTime getUpdated() {
+        return updated;
+    }
+
     public void setName(Name name) {
         this.name = name;
     }
@@ -80,6 +59,10 @@ public class User {
         this.created = created;
     }
 
+    public void setUpdated(LocalDateTime updated) {
+        this.updated = updated;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -94,8 +77,7 @@ public class User {
 
     @Override
     public String toString() {
-        return String.format("User{id=%s, name=%s, email=%s, birthday=%s, created=%s}", id, name, email, birthday, created);
+        return String.format("User{id=%s, name=%s, email=%s, birthday=%s, created=%s, updated=%s}", id, name, email,
+                birthday, created, updated);
     }
 }
-
-
