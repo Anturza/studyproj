@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import mod2.entities.User;
+import mod2.exceptions.UserNotFoundException;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -29,8 +30,9 @@ public class UserDaoImpl implements UserDao {
     private static final Logger logger = LoggerFactory.getLogger(UserDaoImpl.class);
 
     @Override
-    public void create(User user) {
+    public User create(User user) {
         executeWithSession(sessionFactory, session -> session.persist(user));
+        return user;
     }
 
     @Override
@@ -43,7 +45,7 @@ public class UserDaoImpl implements UserDao {
             return Collections.singletonList(currentUser);
         });
         if (singletonList == null) {
-            return null;
+            throw new UserNotFoundException("User not present");
         }
         return singletonList.get(0);
     }

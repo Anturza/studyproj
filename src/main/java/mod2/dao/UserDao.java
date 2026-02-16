@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface UserDao {
 
-    void create(User user);
+    User create(User user);
 
     User get(UUID id);
 
