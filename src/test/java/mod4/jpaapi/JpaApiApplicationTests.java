@@ -1,5 +1,6 @@
 package mod4.jpaapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mod4.jpaapi.dto.UserDTO;
 import mod4.jpaapi.exceptionhandling.exceptions.NotValidUserInputException;
@@ -32,8 +33,7 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -143,7 +143,7 @@ class JpaApiApplicationTests {
 		testUserCreating.setUpdated(LocalDateTime.now());
 
 		when(usersService.createUser(testUserCreating)).thenReturn(ResponseEntity
-				.created(getLocation(testUserCreating)).body(getCreatedUserDto(testUserCreating)) );
+				.created(getLocation(testUserCreating)).body(getCreatedUserDto(testUserCreating)));
 
 		mockMvc.perform(post("/api/users")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -209,6 +209,128 @@ class JpaApiApplicationTests {
 				.andExpect(status().isBadRequest());
 
 		verify(usersService, times(1)).createUser(testUserCreating);
+	}
+
+	@Test
+	public void testUpdateUserEndpoint_Success() throws Exception {
+		User updatedUser = new User();
+		updatedUser.setId(testUserExists.getId());
+		Name newName = Name.nameFromString("UpdatedSurname UpdatedName");
+		updatedUser.setName(newName);
+		updatedUser.setEmail("updated@email.su");
+		updatedUser.setBirthday(LocalDate.of(1988, 10, 23));
+		updatedUser.setCreated(testUserExists.getCreated());
+		LocalDateTime lastUpdated = LocalDateTime.now();
+		updatedUser.setUpdated(lastUpdated);
+
+		when(usersService.updateUser(eq(testIdValid), any(User.class)))
+				.thenReturn(ResponseEntity.ok(getCreatedUserDto(updatedUser)));
+
+
+		MvcResult result = mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
+				.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
+				.andExpect(status().isOk()).andReturn();
+
+		String jsonResponse = result.getResponse().getContentAsString();
+		UserDTO actualUpdatedUser = objectMapper.readValue(jsonResponse, UserDTO.class);
+
+		assertNotNull(actualUpdatedUser);
+		assertEquals(updatedUser.getId(), actualUpdatedUser.id());
+		assertEquals(updatedUser.getName(), actualUpdatedUser.name());
+		assertEquals(updatedUser.getEmail(), actualUpdatedUser.email());
+		assertEquals(updatedUser.getBirthday(), actualUpdatedUser.birthday());
+
+		verify(usersService, times(1)).updateUser(testIdValid, updatedUser);
+	}
+
+	@Test
+	public void testUpdateUserEndpoint_FailWrongNameProvided() throws Exception {
+		User updatedUser = new User();
+		updatedUser.setId(testUserExists.getId());
+		updatedUser.setName(testNameInvalid);
+		updatedUser.setEmail("updated@email.su");
+		updatedUser.setBirthday(LocalDate.of(1988, 10, 23));
+		updatedUser.setCreated(testUserExists.getCreated());
+		LocalDateTime lastUpdated = LocalDateTime.now();
+		updatedUser.setUpdated(lastUpdated);
+
+		when(usersService.updateUser(eq(testIdValid), any(User.class)))
+				.thenThrow(new NotValidUserInputException("Wrong name provided"));
+
+
+		mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
+						.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
+				.andExpect(status().isBadRequest());
+
+		verify(usersService, times(1)).updateUser(testIdValid, updatedUser);
+	}
+
+	@Test
+	public void testUpdateUserEndpoint_FailWrongEmailProvided() throws Exception {
+		User updatedUser = new User();
+		updatedUser.setId(testUserExists.getId());
+		Name newName = Name.nameFromString("UpdatedSurname UpdatedName");
+		updatedUser.setName(newName);
+		updatedUser.setEmail(testEmailInvalid);
+		updatedUser.setBirthday(LocalDate.of(1988, 10, 23));
+		updatedUser.setCreated(testUserExists.getCreated());
+		LocalDateTime lastUpdated = LocalDateTime.now();
+		updatedUser.setUpdated(lastUpdated);
+
+		when(usersService.updateUser(eq(testIdValid), any(User.class)))
+				.thenThrow(new NotValidUserInputException("Wrong email provided"));
+
+
+		mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
+						.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
+				.andExpect(status().isBadRequest());
+
+		verify(usersService, times(1)).updateUser(testIdValid, updatedUser);
+	}
+
+	@Test
+	public void testUpdateUserEndpoint_FailWrongBirthdayProvided() throws Exception {
+		User updatedUser = new User();
+		updatedUser.setId(testUserExists.getId());
+		Name newName = Name.nameFromString("UpdatedSurname UpdatedName");
+		updatedUser.setName(newName);
+		updatedUser.setEmail(testEmailValid);
+		updatedUser.setBirthday(LocalDate.of(2028, 10, 23));
+		updatedUser.setCreated(testUserExists.getCreated());
+		LocalDateTime lastUpdated = LocalDateTime.now();
+		updatedUser.setUpdated(lastUpdated);
+
+		when(usersService.updateUser(eq(testIdValid), any(User.class)))
+				.thenThrow(new NotValidUserInputException("Wrong birthday provided"));
+
+
+		mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
+						.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
+				.andExpect(status().isBadRequest());
+
+		verify(usersService, times(1)).updateUser(testIdValid, updatedUser);
+	}
+
+	@Test
+	public void testDeleteUserById_Success() throws Exception {
+
+		when(usersService.deleteUser(testIdValid)).thenReturn(ResponseEntity.ok().build());
+
+		mockMvc.perform(delete("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4"))
+				.andExpect(status().isOk());
+
+		verify(usersService, times(1)).deleteUser(testIdValid);
+	}
+
+	@Test
+	public void testDeleteUserById_FailWrongId() throws Exception {
+
+		when(usersService.deleteUser(testIdInvalid)).thenReturn(ResponseEntity.notFound().build());
+
+		mockMvc.perform(delete("/api/users/2afae0af-0a24-47da-b1a0-219995da50"))
+				.andExpect(status().isNotFound());
+
+		verify(usersService, times(1)).deleteUser(testIdInvalid);
 	}
 
 	private static UserDTO getCreatedUserDto(User createdUser) {

@@ -70,6 +70,15 @@ public class UsersService {
         }
     }
 
+    public ResponseEntity<Void> deleteUser(UUID id) {
+        if (usersRepository.existsById(id)) {
+            usersRepository.deleteById(id);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     public static UserDTO mapToDTO(User user) {
         return new UserDTO(
                 user.getId(),
