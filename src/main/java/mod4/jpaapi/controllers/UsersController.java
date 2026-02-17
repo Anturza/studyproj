@@ -41,13 +41,8 @@ public class UsersController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
-        if (usersRepository.existsById(id)) {
-            UserDTO user = usersService.getUser(id);
-            return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public UserDTO getUserById(@PathVariable UUID id) {
+        return usersService.getUser(id);
     }
 
     @PostMapping

@@ -1,6 +1,5 @@
 package mod4.jpaapi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import mod4.jpaapi.dto.UserDTO;
 import mod4.jpaapi.exceptionhandling.exceptions.NotValidUserInputException;
@@ -10,6 +9,7 @@ import mod4.jpaapi.models.User;
 import mod4.jpaapi.repositories.UsersRepository;
 import mod4.jpaapi.services.UsersService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,9 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,7 +28,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,7 +42,7 @@ class JpaApiApplicationTests {
     Name testNameValid;
     Name testNameInvalid;
     User testUserExists;
-    User testUserCreating;
+    User testUserNew;
 	String testEmailValid;
 	String testEmailInvalid;
 	LocalDate testBirthday;
@@ -77,17 +74,21 @@ class JpaApiApplicationTests {
         testUserExists.setId(testIdValid);
         testUserExists.setName(testNameValid);
         testUserExists.setEmail(testEmailValid);
-        testUserExists.setBirthday(LocalDate.of(1995, 11, 12));
+        testUserExists.setBirthday(testBirthday);
         testUserExists.setCreated(LocalDateTime.now());
         testUserExists.setUpdated(LocalDateTime.now());
         testUserDTO = UsersService.mapToDTO(testUserExists);
     }
 
 	@Test
-	public void testGetAllUsersEndpoint_Success() throws Exception {
-		User user1 = getTestUser("Petrovskiy Petr Petrovich", "petrovich@list.ru", LocalDate.of(1996, 12, 12));
-		User user2 = getTestUser("Ivanov Ivan Ivanivich", "ivantheterrible@bk.ru", LocalDate.of(1986, 2, 22));
-		User user3 = getTestUser("Sidorov Dmitriy Vladimirovich", "sidr@gmail.com", LocalDate.of(1975, 8, 7));
+	@DisplayName("Get all users test")
+	public void testGetAllUsersEndpoint() throws Exception {
+		User user1 = getTestUserForList("Petrovskiy Petr Petrovich", "petrovich@list.ru",
+				LocalDate.of(1996, 12, 12));
+		User user2 = getTestUserForList("Ivanov Ivan Ivanivich", "ivantheterrible@bk.ru",
+				LocalDate.of(1986, 2, 22));
+		User user3 = getTestUserForList("Sidorov Dmitriy Vladimirovich", "sidr@gmail.com",
+				LocalDate.of(1975, 8, 7));
 		userTestList = Stream.of(user1, user2, user3).map(UsersService::mapToDTO).toList();
 
 		when(usersService.getAllUsers()).thenReturn(userTestList);
@@ -101,9 +102,9 @@ class JpaApiApplicationTests {
 	}
 
     @Test
+	@DisplayName("Get user by id test: case success")
     public void testGetUserByIdEndpoint_Success() throws Exception {
-
-        when(usersService.getUser(testIdValid)).thenReturn(testUserDTO);
+		when(usersService.getUser(testIdValid)).thenReturn(testUserDTO);
 
         MvcResult result = mockMvc.perform(get("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -122,8 +123,8 @@ class JpaApiApplicationTests {
     }
 
 	@Test
-	public void testGetUserByIdEndpoint_Fail() throws Exception {
-
+	@DisplayName("Get user by id test: case fail")
+	public void testGetUserByIdEndpoint_WrongId() throws Exception {
 		when(usersService.getUser(testIdInvalid)).thenThrow(new UserNotFoundException("Not found"));
 
 		mockMvc.perform(get("/api/users/2afae0af-0a24-47da-b1a0-219995da50")
@@ -134,98 +135,77 @@ class JpaApiApplicationTests {
 	}
 
 	@Test
+	@DisplayName("Create user test: case success")
 	public void testCreateUserEndpoint_Success() throws Exception {
-		testUserCreating = new User();
-		testUserCreating.setName(testNameValid);
-		testUserCreating.setEmail(testEmailValid);
-		testUserCreating.setBirthday(testBirthday);
-		testUserCreating.setCreated(LocalDateTime.now());
-		testUserCreating.setUpdated(LocalDateTime.now());
+		testUserNew = getNewUser();
 
-		when(usersService.createUser(testUserCreating)).thenReturn(ResponseEntity
-				.created(getLocation(testUserCreating)).body(getCreatedUserDto(testUserCreating)));
+		when(usersService.createUser(testUserNew)).thenReturn(ResponseEntity
+				.created(getLocation(testUserNew)).body(getCreatedUserDto(testUserNew)));
 
 		mockMvc.perform(post("/api/users")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(testUserCreating)))
+				.content(objectMapper.writeValueAsString(testUserNew)))
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.id").value(testUserCreating.getId()));
+				.andExpect(jsonPath("$.id").value(testUserNew.getId()));
 
-		verify(usersService, times(1)).createUser(testUserCreating);
+		verify(usersService, times(1)).createUser(testUserNew);
 	}
 
 	@Test
-	public void testCreateUserEndpoint_FailWrongNameInput() throws Exception {
-		testUserCreating = new User();
-		testUserCreating.setName(testNameInvalid);
-		testUserCreating.setEmail(testEmailValid);
-		testUserCreating.setBirthday(testBirthday);
-		testUserCreating.setCreated(LocalDateTime.now());
-		testUserCreating.setUpdated(LocalDateTime.now());
+	@DisplayName("Create user test: case fail")
+	public void testCreateUserEndpoint_WrongNameInput() throws Exception {
+		testUserNew = getNewUser();
+		testUserNew.setName(testNameInvalid);
 
-		when(usersService.createUser(testUserCreating)).thenThrow(new NotValidUserInputException("Not valid name provided"));
+		when(usersService.createUser(testUserNew)).thenThrow(new NotValidUserInputException("Not valid name provided"));
 
 		mockMvc.perform(post("/api/users")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(testUserCreating)))
+						.content(objectMapper.writeValueAsString(testUserNew)))
 				.andExpect(status().isBadRequest());
 
-		verify(usersService, times(1)).createUser(testUserCreating);
+		verify(usersService, times(1)).createUser(testUserNew);
 	}
 
 	@Test
-	public void testCreateUserEndpoint_FailWrongEmailInput() throws Exception {
-		testUserCreating = new User();
-		testUserCreating.setName(testNameValid);
-		testUserCreating.setEmail(testEmailInvalid);
-		testUserCreating.setBirthday(testBirthday);
-		testUserCreating.setCreated(LocalDateTime.now());
-		testUserCreating.setUpdated(LocalDateTime.now());
+	@DisplayName("Create user test: case fail")
+	public void testCreateUserEndpoint_WrongEmailInput() throws Exception {
+		testUserNew = getNewUser();
+		testUserNew.setEmail(testEmailInvalid);
 
-		when(usersService.createUser(testUserCreating)).thenThrow(new NotValidUserInputException("Not valid email provided"));
+		when(usersService.createUser(testUserNew)).thenThrow(new NotValidUserInputException("Not valid email provided"));
 
 		mockMvc.perform(post("/api/users")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(testUserCreating)))
+						.content(objectMapper.writeValueAsString(testUserNew)))
 				.andExpect(status().isBadRequest());
 
-		verify(usersService, times(1)).createUser(testUserCreating);
+		verify(usersService, times(1)).createUser(testUserNew);
 	}
 
 	@Test
-	public void testCreateUserEndpoint_FailWrongBirthdayInput() throws Exception {
-		testUserCreating = new User();
-		testUserCreating.setName(testNameValid);
-		testUserCreating.setEmail(testEmailValid);
-		testUserCreating.setBirthday(LocalDate.of(2028, 1, 5));
-		testUserCreating.setCreated(LocalDateTime.now());
-		testUserCreating.setUpdated(LocalDateTime.now());
+	@DisplayName("Create user test: case fail")
+	public void testCreateUserEndpoint_WrongBirthdayInput() throws Exception {
+		testUserNew = getNewUser();
+		testUserNew.setBirthday(LocalDate.of(2028, 1, 5));
 
-		when(usersService.createUser(testUserCreating)).thenThrow(new NotValidUserInputException("Not valid birthday provided"));
+		when(usersService.createUser(testUserNew)).thenThrow(new NotValidUserInputException("Not valid birthday provided"));
 
 		mockMvc.perform(post("/api/users")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(testUserCreating)))
+						.content(objectMapper.writeValueAsString(testUserNew)))
 				.andExpect(status().isBadRequest());
 
-		verify(usersService, times(1)).createUser(testUserCreating);
+		verify(usersService, times(1)).createUser(testUserNew);
 	}
 
 	@Test
+	@DisplayName("Update user test: case success")
 	public void testUpdateUserEndpoint_Success() throws Exception {
-		User updatedUser = new User();
-		updatedUser.setId(testUserExists.getId());
-		Name newName = Name.nameFromString("UpdatedSurname UpdatedName");
-		updatedUser.setName(newName);
-		updatedUser.setEmail("updated@email.su");
-		updatedUser.setBirthday(LocalDate.of(1988, 10, 23));
-		updatedUser.setCreated(testUserExists.getCreated());
-		LocalDateTime lastUpdated = LocalDateTime.now();
-		updatedUser.setUpdated(lastUpdated);
+		User updatedUser = getUpdatedUser();
 
 		when(usersService.updateUser(eq(testIdValid), any(User.class)))
 				.thenReturn(ResponseEntity.ok(getCreatedUserDto(updatedUser)));
-
 
 		MvcResult result = mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
 				.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
@@ -244,20 +224,14 @@ class JpaApiApplicationTests {
 	}
 
 	@Test
-	public void testUpdateUserEndpoint_FailWrongNameProvided() throws Exception {
-		User updatedUser = new User();
-		updatedUser.setId(testUserExists.getId());
+	@DisplayName("Update user test: case fail")
+	public void testUpdateUserEndpoint_WrongNameProvided() throws Exception {
+		User updatedUser = getUpdatedUser();
 		updatedUser.setName(testNameInvalid);
-		updatedUser.setEmail("updated@email.su");
-		updatedUser.setBirthday(LocalDate.of(1988, 10, 23));
-		updatedUser.setCreated(testUserExists.getCreated());
-		LocalDateTime lastUpdated = LocalDateTime.now();
-		updatedUser.setUpdated(lastUpdated);
 
 		when(usersService.updateUser(eq(testIdValid), any(User.class)))
 				.thenThrow(new NotValidUserInputException("Wrong name provided"));
 
-
 		mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
 						.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
 				.andExpect(status().isBadRequest());
@@ -266,21 +240,14 @@ class JpaApiApplicationTests {
 	}
 
 	@Test
-	public void testUpdateUserEndpoint_FailWrongEmailProvided() throws Exception {
-		User updatedUser = new User();
-		updatedUser.setId(testUserExists.getId());
-		Name newName = Name.nameFromString("UpdatedSurname UpdatedName");
-		updatedUser.setName(newName);
+	@DisplayName("Update user test: case fail")
+	public void testUpdateUserEndpoint_WrongEmailProvided() throws Exception {
+		User updatedUser = getUpdatedUser();
 		updatedUser.setEmail(testEmailInvalid);
-		updatedUser.setBirthday(LocalDate.of(1988, 10, 23));
-		updatedUser.setCreated(testUserExists.getCreated());
-		LocalDateTime lastUpdated = LocalDateTime.now();
-		updatedUser.setUpdated(lastUpdated);
 
 		when(usersService.updateUser(eq(testIdValid), any(User.class)))
 				.thenThrow(new NotValidUserInputException("Wrong email provided"));
 
-
 		mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
 						.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
 				.andExpect(status().isBadRequest());
@@ -289,21 +256,14 @@ class JpaApiApplicationTests {
 	}
 
 	@Test
-	public void testUpdateUserEndpoint_FailWrongBirthdayProvided() throws Exception {
-		User updatedUser = new User();
-		updatedUser.setId(testUserExists.getId());
-		Name newName = Name.nameFromString("UpdatedSurname UpdatedName");
-		updatedUser.setName(newName);
-		updatedUser.setEmail(testEmailValid);
+	@DisplayName("Update user test: case fail")
+	public void testUpdateUserEndpoint_WrongBirthdayProvided() throws Exception {
+		User updatedUser = getUpdatedUser();
 		updatedUser.setBirthday(LocalDate.of(2028, 10, 23));
-		updatedUser.setCreated(testUserExists.getCreated());
-		LocalDateTime lastUpdated = LocalDateTime.now();
-		updatedUser.setUpdated(lastUpdated);
 
 		when(usersService.updateUser(eq(testIdValid), any(User.class)))
 				.thenThrow(new NotValidUserInputException("Wrong birthday provided"));
 
-
 		mockMvc.perform(put("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4")
 						.contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(updatedUser)))
 				.andExpect(status().isBadRequest());
@@ -312,8 +272,8 @@ class JpaApiApplicationTests {
 	}
 
 	@Test
+	@DisplayName("Delete user test: case success")
 	public void testDeleteUserById_Success() throws Exception {
-
 		when(usersService.deleteUser(testIdValid)).thenReturn(ResponseEntity.ok().build());
 
 		mockMvc.perform(delete("/api/users/2afae0af-0a24-47da-b1a0-219995da50e4"))
@@ -323,14 +283,37 @@ class JpaApiApplicationTests {
 	}
 
 	@Test
-	public void testDeleteUserById_FailWrongId() throws Exception {
-
+	@DisplayName("Delete user test: case fail")
+	public void testDeleteUserById_WrongId() throws Exception {
 		when(usersService.deleteUser(testIdInvalid)).thenReturn(ResponseEntity.notFound().build());
 
 		mockMvc.perform(delete("/api/users/2afae0af-0a24-47da-b1a0-219995da50"))
 				.andExpect(status().isNotFound());
 
 		verify(usersService, times(1)).deleteUser(testIdInvalid);
+	}
+
+	private User getNewUser() {
+		User user = new User();
+		user.setName(testNameValid);
+		user.setEmail(testEmailValid);
+		user.setBirthday(testBirthday);
+		user.setCreated(LocalDateTime.now());
+		user.setUpdated(LocalDateTime.now());
+		return user;
+	}
+
+	private User getUpdatedUser() {
+		User updatedUser = new User();
+		updatedUser.setId(testUserExists.getId());
+		Name newName = Name.nameFromString("UpdatedSurname UpdatedName");
+		updatedUser.setName(newName);
+		updatedUser.setEmail("updated@email.su");
+		updatedUser.setBirthday(LocalDate.of(1988, 10, 23));
+		updatedUser.setCreated(testUserExists.getCreated());
+		LocalDateTime lastUpdated = LocalDateTime.now();
+		updatedUser.setUpdated(lastUpdated);
+		return updatedUser;
 	}
 
 	private static UserDTO getCreatedUserDto(User createdUser) {
@@ -342,7 +325,7 @@ class JpaApiApplicationTests {
                 .fromCurrentRequest().path("/{id}").buildAndExpand(createdUser.getId()).toUri();
 	}
 
-	private static User getTestUser(String name, String email, LocalDate birthday) {
+	private static User getTestUserForList (String name, String email, LocalDate birthday) {
 		User testUser = new User();
 		testUser.setId(UUID.randomUUID());
 		Name parsedName = Name.nameFromString(name);
@@ -353,6 +336,4 @@ class JpaApiApplicationTests {
 		testUser.setUpdated(LocalDateTime.now());
 		return testUser;
 	}
-
-
 }
