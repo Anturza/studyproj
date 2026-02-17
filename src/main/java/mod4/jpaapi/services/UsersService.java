@@ -38,13 +38,7 @@ public class UsersService {
 
     public ResponseEntity<UserDTO> createUser(User user) {
         checkReceivedUserData(user);
-        User newUser = new User();
-        Name userName = Name.nameFromString(user.getName().toString());
-        newUser.setName(userName);
-        newUser.setEmail(user.getEmail());
-        newUser.setBirthday(user.getBirthday());
-        newUser.setCreated(LocalDateTime.now());
-        newUser.setUpdated(LocalDateTime.now());
+        User newUser = mapReceivedUser(user, new User());
         User createdUser = usersRepository.save(newUser);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest().path("/{id}").buildAndExpand(createdUser.getId()).toUri();
@@ -56,12 +50,7 @@ public class UsersService {
         Optional<User> userOpt = usersRepository.findById(id);
         checkReceivedUserData(userDetails);
         if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            Name userName = Name.nameFromString(userDetails.getName().toString());
-            user.setName(userName);
-            user.setEmail(userDetails.getEmail());
-            user.setBirthday(userDetails.getBirthday());
-            user.setCreated(userDetails.getCreated());
+            User user = mapReceivedUser(userDetails, userOpt.get());
             user.setUpdated(LocalDateTime.now());
             User updatedUser = usersRepository.save(user);
             return ResponseEntity.ok(UsersService.mapToDTO(updatedUser));
@@ -86,6 +75,16 @@ public class UsersService {
                 user.getEmail(),
                 user.getBirthday()
         );
+    }
+
+    public static User mapReceivedUser(User userDetails, User targetUser) {
+        Name userName = Name.nameFromString(userDetails.getName().toString());
+        targetUser.setName(userName);
+        targetUser.setEmail(userDetails.getEmail());
+        targetUser.setBirthday(userDetails.getBirthday());
+        targetUser.setCreated(LocalDateTime.now());
+        targetUser.setUpdated(LocalDateTime.now());
+        return targetUser;
     }
 
     public static void checkReceivedUserData(User userDetails) {
